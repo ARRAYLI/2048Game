@@ -1,0 +1,19 @@
+C语言时间，怎么把time_t类型的时间，转化成年、月、日、时、分、秒呢？
+npAO12GF61 | 浏览 2588 次
+推荐于2016-03-22 07:45:02 最佳答案
+可以使用gmtime函数或localtime函数将time_t类型的时间日期转换为struct tm类型（年、月、日、时、分、秒）。
+使用time函数返回的是一个long值，该值对用户的意义不大，一般不能根据其值确定具体的年、月、日等数据。gmtime函数可以方便的对time_t类型数据进行转换,将其转换为tm结构的数据方便数据阅读。gmtime函数的原型如下:struct tm *gmtime(time_t *timep);localtime函数的原型如下:struct tm *localtime(time_t *timep);将参数timep所指的time_t类型信息转换成实际所使用的时间日期表示方法，将结果返回到结构tm结构类型的变量。gmtime函数用来存放实际日期时间的结构变量是静态分配的，每次调用gmtime函数都将重写该结构变量。如果希望保存结构变量中的内容，必须将其复制到tm结构的另一个变量中。gmtime函数与localtime函数的区别:gmtime函数返回的时间日期未经时区转换，是UTC时间(又称为世界时间，即格林尼治时间)。localtime函数返回当前时区的时间。
+转换日期时间表示形式time_t类型转换为struct tm类型示例:
+#include <stdio.h>
+#include <time.h>
+int main()
+{   
+char *wday[]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};/*指针字符数组*/    time_t t;   
+ struct tm *p;   
+t=time(NULL);/*获取从1970年1月1日零时到现在的秒数，保存到变量t中*/    p=gmtime(&t); /*变量t的值转换为实际日期时间的表示格式*/  
+ printf("%d年%02d月%02d日",(1900+p->tm_year), (1+p->tm_mon),p->tm_mday);   
+printf(" %s ", wday[p->tm_wday]);
+printf("%02d:%02d:%02d\n", p->tm_hour, p->tm_min, p->tm_sec);   
+return 0;
+}
+注意：p=gmtime(&t);此行若改为p=localtime(&t);则返回当前时区的时间。

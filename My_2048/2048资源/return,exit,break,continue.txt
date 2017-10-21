@@ -1,0 +1,161 @@
+C语言中的return,exit,break,continue。
+
+前两个函数使用的同时通常都会带上程序退出时的状态码，标准C中有EXIT_SUCCESS和EXIT_FAILURE两个宏，位于/usr/include/stdlib.h中。
+
+是这样定义的的：
+#define EXIT_FAILURE 1
+#define EXIT_SUCCESS 0
+
+
+一.exit函数的作用及其与_exit()函数的区别。
+有库文件中的定义可知：exit是一个库函数，exit(1）表示发生错误后退出程序，exit(0)表示正常退出。
+在stdlib.h中exit函数是这样子定义的：void exit(int status);
+这个系统调用是用来终止一个进程的，无论在程序中的什么位置，只要执行exit，进程就会从终止进程的运行。
+讲到exit这个系统调用，就要提及另外一个系统调用，_exit,_exit()函数位于unistd.h中，相比于exit()，_exit()函数的功能最为简单，直接终止进程的运行，释放其所使用的内存空间，并销毁在内存中的数据结构，而exit()在于在进程退出之前要检查文件的状态，将文件缓冲区中的内容写回文件。
+下面我们通过于printf这个操作缓冲区的函数结合来说明上面的情况：1.exit终止进程。
+/* exit1.c */
+#include <stdlib.h>
+#include <stdio.h>
+
+
+main()
+{
+printf("output begin/n");
+exit(0);
+printf("output end/n");
+}
+执行gcc -o exit1 exit1.c生成exit1,执行，只会打印出output begin.
+2. exit将缓冲区内容写回文件。
+对应每一个打开的文件，在内存中都有一片缓冲区，每次读文件时，会多读出若干条记录，这样下次读文件时就可以直接从内存的缓冲区中读 取，每次写文件的时候，也仅仅是写入内存中的缓冲区，等满足了一定的条件（达到一定数量，遇到特定字符（如换行符/n和文件结束符EOF）），再将缓冲区 中的内容一次性写入文件，我们知道
+void exit(int status);
+exit()用来正常终结目前进程的执行，并把参数status返回给父进程，而进程所有的缓冲区数据会自动写回并关闭未关闭的文件。
+#include <stdlib.h>
+#include <stdio.h>
+
+
+main()
+{
+printf("output begin/n");
+printf("content in buffer");
+exit(0);
+}
+$ ./exit1
+output begin
+content in buffer
+printf()会根据参数format字符串来转换并格式化数据，然后将结果写出到标准输出设备，直到出现字符串结束('/0')为止。可见，exit将未出现换行符的语句保存到标注输出文件。
+3._exit()不会执行清理I/O缓冲的操作。
+_exit()用来立刻结束目前进程的执行，并把参数status返回给父进程，并关闭未关闭的文件。此函数调用后不会返回，并且会传递SIGCHLD信号给父进程，父进程可以由wait函数取得子进程结束状态。
+#include <stdio.h>
+#include <unistd.h>
+
+
+main()
+{
+printf("output begin/n");
+printf("content in buffer/n");
+_exit(0);
+}
+$ ./exit2
+output begin
+实际上因为第二条printf语句没有满 足特定的条件，它们还只是保存在缓冲区内，这时我们用_exit()函数直接将进程关闭，缓冲区中的数据就会丢失，
+
+
+和exit比较，return主要用于提供函数返回值，continue,break语句则大多数情况下用于循环中。许多朋友可能会将这三条语句与exit搞混，并且对这三个语句区分不清楚。
+
+
+二.exit和return的区别与联系。
+
+
+当然，在进程操作中，我们需要来区分一下exit和return。
+1.exit()结束当前进程/当前程序/，在整个程序中，只要调用exit就结束（当前进程或者在main时候为整个程序）
+2.return()是当前函数返回，当然如果是在主函数main, 自然也就结束当前进程了，如果不是，那就是退回上一层调用。在多个进程时.如果有时要检测上进程是否正常退出的.就要用到上个进程的返回值，依次类推。
+进程环境与进程控制(1): 进程的开始与终止
+exit可以返回小于256的任何整数。返回的不同数值主要是给调用者作不同处理的。
+单独的进程是返回给操作系统的。如果是多进程，是返回给父进程的。父进程里面调用waitpid()等函数得到子进程退出的状态，以便作不同处理。根据相应的返回值来让调用者作出相应的处理.总的说来，exit（）就是当前进程把控制权返回给调用该程序的程序,括号里的是返回值,告诉调用程序该程序的运行状态。
+进程终止:
+C程序的终止分为两种: 正常终止和异常终止.
+
+
+正常终止分为: return, exit, _exit, _Exit, pthreade_exit
+异常中指分为: abort, SIGNAL, 线程响应取消
+主要说一下正常终止的前4种, 即exit系列函数。
+return函数exit函数区别：
+
+
+1，exit用于在程序运行的过程中随时结束程序，exit的参数是返回给OS的。main函数结束时也会隐式地调用 exit函数。exit函数运行时首先会执行由atexit()函数登记的函数，然后会做一些自身的清理工作，同时刷新所有输出流、关闭所有打开的流并且关闭通过标准I/O函数tmpfile()创建的临时文件。exit是结束一个进程，它将删除进程使用的内存空间，同时把错误信息返回父进程,而 return是返回函数值并退出函数
+2，return是语言级别的，它表示了调用堆栈的返回；而exit是系统调用级别的，它表示了一个进程的结束。
+3.在有返回值的函数中，return语句的作用是提供整个函数的返回值，并结束当前函数返回到调用它的地方。在没有返回值的函数中也可以使用return语句，例如当检查到一个错误时提前结束当前函数的执行并返回。一般程序执行到 main() 的结束就完成了, 如果想在程序结束时做一些事情, 可以尝试着用这个函数.
+example:
+
+
+void test1(void)
+{
+printf("exit test1/n");
+}
+
+
+void test2(void)
+{
+printf("exit test2/n");
+}
+
+
+int main()
+{
+atexit(test1);
+atexit(test2);
+printf("exit main/n");
+return 0;
+}
+
+
+三.break和continue的区别与联系。
+
+
+break 语句通常用在循环语句和开关语句中。当 break 用于开关语句 switch 中时,可使
+程序跳出 switch 而执行 switch 以后的语句;如果没有 break 语句,则将成为一个死循环而
+无法退出。
+当 break 语句用于 do-while、for、while 循环语句中时,可使程序终止循环而执行循环
+后面的语句, 通常 break 语句总是与 if 语句联在一起。即满足条件时便跳出循环。
+#include <stdio.h>
+main()
+{
+int i=0;
+char c;
+while(1)
+{
+c='/0';
+while(c!=13&&c!=27)
+{
+c=getchar();
+printf("%c/n",c);
+}
+if(c=27)
+break;
+i++;
+printf("the no is %d/n",i);
+}
+printf("End/n");
+}
+c='/0'是给变量C附初值，当键盘接收到回车或者ESC按键，开始接受字符，并且打印到终端，如果键盘接收到ESC按键，则直接退出while循环。
+注意:
+1) break 语句对 if-else 的条件语句不起作用。
+2) 在多层循环中, 一个 break 语句只向外跳一层。
+
+
+continue 语句的作用是跳过循环本中剩余的语句而强行执行下一次循环。continue 语
+句只用在 for、while、do-while 等循环体中,常与 if 条件语句一起使用,用来加速循环。
+main()
+{
+char c;
+while(c!=13) /*不是回车符则循环*/
+{
+c=getch();
+if(c==0X1B)
+continue; /*若按 Esc 键不输出便进行下次循环*/
+printf("%c/n", c);
+}
+}
+
+
+continue和break都可以用于C提供的全部三种循环结构。continue会使循环跳出循环体内剩余的语句，转而判断循环条件是否成立，然后选择是否再次进入循环体。break作用是跳出循环，如果break位于循环嵌套中的一个内循环则仅跳出这个内循环。

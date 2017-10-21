@@ -1,0 +1,428 @@
+C语言获取当前系统时间的几种方式 (2011-08-21 08:44:46)转载▼
+标签： 函数 获取 c语言 计数器 时间间隔	分类： 编程语言
+C语言获取当前系统时间的几种方式
+C语言获取系统时间的几种方式
+C语言中如何获取时间？精度如何？
+1 使用time_t time( time_t * timer ) 精确到秒
+2 使用clock_t clock() 得到的是CPU时间精确到1/CLOCKS_PER_SEC秒
+3 计算时间差使用double difftime( time_t timer1, time_t timer0 )
+4 使用DWORD GetTickCount() 精确到毫秒
+5 如果使用MFC的CTime类，可以用CTime::GetCurrentTime() 精确到秒
+6 要获取高精度时间，可以使用
+BOOL QueryPerformanceFrequency(LARGE_INTEGER *lpFrequency)
+获取系统的计数器的频率
+BOOL QueryPerformanceCounter(LARGE_INTEGER *lpPerformanceCount)
+获取计数器的值
+然后用两次计数器的差除以Frequency就得到时间。
+7 Multimedia Timer Functions
+The following functions are used with multimedia timers.
+timeBeginPeriod/timeEndPeriod/timeGetDevCaps/timeGetSystemTime
+//*********************************************************************
+//用标准C实现获取当前系统时间的函数
+ 
+一.time()函数
+ 
+     time(&rawtime)函数获取当前时间距1970年1月1日的秒数，以秒计数单位，存于rawtime 中。
+#include "time.h"
+void main ()
+{
+time_t rawtime;
+struct tm * timeinfo;
+time ( &rawtime );
+timeinfo = localtime ( &rawtime );
+printf ( "\007The current date/time is: %s", asctime (timeinfo) );
+exit(0);
+}
+=================
+#include -- 必须的时间函数头文件
+time_t -- 时间类型（time.h 定义是typedef long time_t; 追根溯源，time_t是long）
+struct tm -- 时间结构，time.h 定义如下：
+int tm_sec;
+int tm_min;
+int tm_hour;
+int tm_mday;
+int tm_mon;
+int tm_year;
+int tm_wday;
+int tm_yday;
+int tm_isdst;
+time ( &rawtime ); -- 获取时间，以秒计，从1970年1月一日起算，存于rawtime
+localtime ( &rawtime ); -- 转为当地时间，tm 时间结构
+asctime （）-- 转为标准ASCII时间格式：
+星期 月 日 时：分：秒 年
+ 
+-----------------------------------------------------------------------------
+二.clock()函数,用clock()函数，得到系统启动以后的毫秒级时间，然后除以CLOCKS_PER_SEC，就可以换成“秒”，标准c函数。
+clock_t clock ( void );
+#include
+clock_t t = clock();
+long sec = t / CLOCKS_PER_SEC;
+他是记录时钟周期的，实现看来不会很精确，需要试验验证；
+---------------------------------------------------------------------------
+三.gettime(&t); 据说tc2.0的time结构含有毫秒信息
+#include
+#include
+int main(void)
+{
+struct time t;
+gettime(&t);
+printf("The current time is: -:d:d.d\n",
+t.ti_hour, t.ti_min, t.ti_sec, t.ti_hund);
+return 0;
+}
+time 是一个结构体，， 其中成员函数 ti_hund 是毫秒。。。
+ 
+--------------------------------------------------------------------------------
+四.GetTickCount(),这个是windows里面常用来计算程序运行时间的函数；
+DWORD dwStart = GetTickCount();
+//这里运行你的程序代码
+DWORD dwEnd = GetTickCount();
+则(dwEnd-dwStart)就是你的程序运行时间, 以毫秒为单位
+这个函数只精确到55ms，1个tick就是55ms。
+--------------------------------------------------------------------------------
+五.timeGetTime()t,imeGetTime()基本等于GetTickCount()，但是精度更高
+DWORD dwStart = timeGetTime();
+//这里运行你的程序代码
+DWORD dwEnd = timeGetTime();
+则(dwEnd-dwStart)就是你的程序运行时间, 以毫秒为单位
+虽然返回的值单位应该是ms,但传说精度只有10ms。
+=========================================
+//*****************************************************************Unix
+##unix时间相关,也是标准库的
+//*********************************************************************
+1.timegm函数只是将struct tm结构转成time_t结构,不使用时区信息;
+time_t timegm(struct tm *tm);
+2.mktime使用时区信息
+time_t mktime(struct tm *tm);
+timelocal 函数是GNU扩展的与posix函数mktime相当
+time_t timelocal (struct tm *tm);
+3.gmtime函数只是将time_t结构转成struct tm结构,不使用时区信息;
+struct tm * gmtime(const time_t *clock);
+4.localtime使用时区信息
+struct tm * localtime(const time_t *clock);
+1.time获取时间，stime设置时间
+time_t t；
+t = time(&t);
+2.stime其参数应该是GMT时间,根据本地时区设置为本地时间;
+int stime(time_t *tp)
+3.UTC=true 表示采用夏时制;
+4.文件的修改时间等信息全部采用GMT时间存放,不同的系统在得到修改时间后通过localtime转换成本地时间;
+5.设置时区推荐使用setup来设置;
+6.设置时区也可以先更变/etc/sysconfig/clock中的设置再将ln -fs /usr/share/zoneinfo/xxxx/xxx /etc/localtime 才能重效
+time_t只能表示68年的范围，即mktime只能返回1970-2038这一段范围的time_t
+看看你的系统是否有time_t64，它能表示更大的时间范围
+//***************************************************************windows
+##Window里面的一些不一样的
+//*********************************************************************
+ 
+一.CTime () 类
+VC编程一般使用CTime类 获得当前日期和时间
+ 
+CTime t = GetCurrentTime();
+SYSTEMTIME 结构包含毫秒信息
+typedef struct _SYSTEMTIME {
+WORD wYear;
+WORD wMonth;
+WORD wDayOfWeek;
+WORD wDay;
+WORD wHour;
+WORD wMinute;
+WORD wSecond;
+WORD wMilliseconds;
+} SYSTEMTIME, *PSYSTEMTIME;
+SYSTEMTIME t1;
+GetSystemTime(&t1)
+CTime curTime(t1);
+WORD ms = t1.wMilliseconds;
+SYSTEMTIME sysTm;
+::GetLocalTime(&sysTm);
+在time.h中的_strtime() //只能在windows中用
+char t[11];
+_strtime(t);
+puts(t);
+ 
+//*****************************
+获得当前日期和时间
+CTime tm=CTime::GetCurrentTime();
+CString str=tm.Format("%Y-%m-%d");
+在VC中，我们可以借助CTime时间类，获取系统当前日期，具体使用方法如下：
+CTime t = CTime::GetCurrentTime(); //获取系统日期，存储在t里面
+int d=t.GetDay(); //获得当前日期
+int y=t.GetYear(); //获取当前年份
+int m=t.GetMonth(); //获取当前月份
+int h=t.GetHour(); //获取当前为几时
+int mm=t.GetMinute(); //获取当前分钟
+int s=t.GetSecond(); //获取当前秒
+int w=t.GetDayOfWeek(); //获取星期几，注意1为星期天，7为星期六
+ 
+二.CTimeSpan类
+如果想计算两段时间的差值，可以使用CTimeSpan类，具体使用方法如下：
+CTime t1( 1999, 3, 19, 22, 15, 0 );
+CTime t = CTime::GetCurrentTime();
+CTimeSpan span=t-t1; //计算当前系统时间与时间t1的间隔
+int iDay=span.GetDays(); //获取这段时间间隔共有多少天
+int iHour=span.GetTotalHours(); //获取总共有多少小时
+int iMin=span.GetTotalMinutes();//获取总共有多少分钟
+int iSec=span.GetTotalSeconds();//获取总共有多少秒
+ 
+ 
+------------------------------------------------------------------------------
+ 
+三._timeb()函数
+_timeb定义在SYS\TIMEB.H，有四个fields
+dstflag
+millitm
+time
+timezone
+void _ftime( struct _timeb *timeptr );
+struct _timeb timebuffer;
+_ftime( &timebuffer );
+取当前时间:文档讲可以到ms,有人测试,好象只能到16ms!
+ 
+ 
+四.设置计时器
+定义TIMER ID
+#define TIMERID_JISUANFANGSHI 2
+在适当的地方设置时钟,需要开始其作用的地方;
+SetTimer(TIMERID_JISUANFANGSHI,200,NULL);
+在不需要定时器的时候的时候销毁掉时钟
+KillTimer(TIMERID_JISUANFANGSHI);
+对应VC程序的消息映射
+void CJisuan::OnTimer(UINT nIDEvent)
+{switch(nIDEvent)}
+---------------------------------------------------------------------------------------
+##如何设定当前系统时间---------------------------------------windows
+SYSTEMTIME m_myLocalTime,*lpSystemTime;
+m_myLocalTime.wYear=2003;
+m_myLocalTime.wM;
+m_myLocalTime.wDay=1;
+m_myLocalTime.wHour=0;
+m_myLocalTime.wMinute=0;
+m_myLocalTime.wSec;
+m_myLocalTime.wMillisec;
+lpSystemTime=&m_myLocalTime;
+if( SetLocalTime(lpSystemTime) ) //此处换成 SetSystemTime( )也不行
+MessageBox("OK !");
+else
+MessageBox("Error !");
+SYSTEMTIME m_myLocalTime,*lpSystemTime;
+m_myLocalTime.wYear=2003;
+m_myLocalTime.wM;
+m_myLocalTime.wDay=1;
+lpSystemTime=&m_myLocalTime;
+if( SetDate(lpSystemTime) ) //此处换成 SetSystemTime( )也不行
+MessageBox("OK !");
+else
+MessageBox("Error !");
+ 
+ 
+ 
+一种制作微秒级精度定时器的方法
+当使用定时器时，在很多情况下只用到毫秒级的时间间隔，所以只需用到下面的两种常用方式就满足要求了。一是用SetTimer函数建立一个定时器后，在程序中通过处理由定时器发送到线程消息队列中的WM_TIMER消息，而得到定时的效果（退出程序时别忘了调用和SetTimer配对使用的KillTimer函数）。二是利用GetTickCount函数可以返回自计算机启动后的时间，通过两次调用GetTickCount函数，然后控制它们的差值来取得定时效果，此方式跟第一种方式一样，精度也是毫秒级的。
+用这两种方式取得的定时效果虽然在许多场合已经满足实际的要求，但由于它们的精度只有毫秒级的，而且在要求定时时间间隔小时，实际定时误差大。下面介绍一种能取得高精度定时的方法。
+在一些计算机硬件系统中，包含有高精度运行计数器（high-resolution   performance   counter），利用它可以获得高精度定时间隔，其精度与CPU的时钟频率有关。采用这种方法的步骤如下：
+1、首先调用QueryPerformanceFrequency函数取得高精度运行计数器的频率f。单位是每秒多少次（n/s），此数一般很大。
+2、在需要定时的代码的两端分别调用QueryPerformanceCounter以取得高精度运行计数器的数值n1，n2。两次数值的差值通过f换算成时间间隔，t=(n2-n1)/f。
+下面举一个例子来演示这种方法的使用及它的精确度。
+在VC   6.0   下用MFC建立一个对话框工程，取名为HightTimer.在对话框面板中控件的布局如下图：
+其中包含两个静态文本框，两个编辑框和两个按纽。上面和下面位置的编辑框的ID分别为IDC_E_TEST和IDC_E_ACTUAL，通过MFC   ClassWizard添加的成员变量也分别对应为DWORD   m_dwTest和DWORD   m_dwAct.   “退出”按纽的ID为IDOK，“开始测试”按纽ID为IDC_B_TEST，用MFC   ClassWizard添加此按纽的单击消息处理函数如下：
+void   CHightTimerDlg::OnBTest()
+{
+//   TODO:   Add   your   control   notification   handler   code   here
+UpdateData(TRUE);   //取输入的测试时间值到与编辑框相关联的成员变量m_dwTest中
+ 
+LARGE_INTEGER   frequence;
+if(!QueryPerformanceFrequency(   &frequence))   //取高精度运行计数器的频率，若硬件不支持则返回FALSE
+MessageBox("Your   computer   hardware   doesn't   support   the   high-resolution   performance   counter",
+"Not   Support",   MB_ICONEXCLAMATION   |   MB_OK);
+ 
+LARGE_INTEGER   test,   ret;
+test.QuadPart   =   frequence.QuadPart   *   m_dwTest   /   1000000;   //通过频率换算微秒数到对应的数量（与CPU时钟有关），1秒=1000000微秒
+ret   =   MySleep(   test   );   //调用此函数开始延时，返回实际花销的数量
+ 
+m_dwAct   =   (DWORD)(1000000   *   ret.QuadPart   /   frequence.QuadPart   );   //换算到微秒数
+ 
+UpdateData(FALSE);   //显示到对话框面板
+}
+   其中上面调用的MySleep函数如下：
+ 
+LARGE_INTEGER   CHightTimerDlg::MySleep(LARGE_INTEGER   Interval)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//   功能：执行实际的延时功能    
+//   参数：Interval   参数为需要执行的延时与时间有关的数量    
+//   返回值：返回此函数执行后实际所用的时间有关的数量    
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+{  
+LARGE_INTEGER   privious,   current,   Elapse;
+ 
+QueryPerformanceCounter(   &privious   );
+current   =   privious;
+ 
+while(   current.QuadPart   -   privious.QuadPart   <   Interval.QuadPart   )
+QueryPerformanceCounter(   ¤t   );
+ 
+Elapse.QuadPart   =   current.QuadPart   -   privious.QuadPart;
+ 
+return   Elapse;
+}
+注：别忘了在头文件中为此函数添加函数声明。
+ 
+至此，可以编译和执行此工程了，结果如上图所示。在本人所用的机上(奔腾366，   64M内存)测试，当测试时间超过3微秒时，准确度已经非常高了，此时机器执行本身延时函数代码的时间对需要延时的时间影响很小了。
+ 
+上面的函数由于演示测试的需要，没有在函数级封装，下面给出的函数基本上可以以全局函数的形式照搬到别的程序中。
+ 
+BOOL   MySleep(DWORD   dwInterval)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//   功能：执行微秒级的延时功能    
+//   参数：Interval   参数为需要的延时数（单位：微秒）    
+//   返回值：若计算机硬件不支持此功能，返回FALSE，若函数执行成功，返回TRUE    
+/////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+{
+BOOL   bNormal   =   TRUE;
+LARGE_INTEGER   frequence,   privious,   current,   interval;
+ 
+if(!QueryPerformanceFrequency(   &frequence))
+{
+::MessageBox(NULL,   "Your   computer   hardware   doesn't   support   the   high-resolution   performance   counter",
+"Not   Support",   MB_ICONEXCLAMATION   |   MB_OK);   //或其它的提示信息
+return   FALSE;
+}
+ 
+interval.QuadPart   =   frequence.QuadPart   *   dwInterval   /   1000000;
+ 
+bNormal   =   bNormal   &&   QueryPerformanceCounter(   &privious   );
+current   =   privious;
+ 
+while(   current.QuadPart   -   privious.QuadPart   <   interval.QuadPart   )
+bNormal   =   bNormal   &&   QueryPerformanceCounter(   ¤t   );
+ 
+return   bNormal;
+}
+ 
+需要指出的是，由于在此函数中的代码很多，机器在执行这些代码所花费的时间也很长，所以在需要几个微秒的延时时，会影响精度。实际上，读者在熟悉这种方法后，只要使用QueryPerformanceFrequency和QueryPerformanceCounter这两个函数就能按实际需要写出自己的延时代码了。
+ 
+使用CPU时间戳进行高精度计时
+对关注性能的程序开发人员而言，一个好的计时部件既是益友，也是良师。计时器既可以作为程序组件帮助程序员精确的控制程序进程，又是一件有力的调试武器，在有经验的程序员手里可以尽快的确定程序的性能瓶颈，或者对不同的算法作出有说服力的性能比较。
+ 
+在Windows平台下，常用的计时器有两种，一种是timeGetTime多媒体计时器，它可以提供毫秒级的计时。但这个精度对很多应用场合而言还是太粗糙了。另一种是QueryPerformanceCount计数器，随系统的不同可以提供微秒级的计数。对于实时图形处理、多媒体数据流处理、或者实时系统构造的程序员，善用QueryPerformanceCount/QueryPerformanceFrequency是一项基本功。
+ 
+本文要介绍的，是另一种直接利用Pentium   CPU内部时间戳进行计时的高精度计时手段。以下讨论主要得益于《Windows图形编程》一书，第15页－17页，有兴趣的读者可以直接参考该书。关于RDTSC指令的详细讨论，可以参考Intel产品手册。本文仅仅作抛砖之用。
+ 
+在Intel   Pentium以上级别的CPU中，有一个称为“时间戳（Time   Stamp）”的部件，它以64位无符号整型数的格式，记录了自CPU上电以来所经过的时钟周期数。由于目前的CPU主频都非常高，因此这个部件可以达到纳秒级的计时精度。这个精确性是上述两种方法所无法比拟的。
+ 
+在Pentium以上的CPU中，提供了一条机器指令RDTSC（Read   Time   Stamp   Counter）来读取这个时间戳的数字，并将其保存在EDX:EAX寄存器对中。由于EDX:EAX寄存器对恰好是Win32平台下C++语言保存函数返回值的寄存器，所以我们可以把这条指令看成是一个普通的函数调用。像这样：
+ 
+inline   unsigned   __int64   GetCycleCount()
+{ 
+__asm   RDTSC 
+} 
+ 
+但是不行，因为RDTSC不被C++的内嵌汇编器直接支持，所以我们要用_emit伪指令直接嵌入该指令的机器码形式0X0F、0X31，如下：
+ 
+inline   unsigned   __int64   GetCycleCount()  
+{  
+    __asm   _emit   0x0F  
+    __asm   _emit   0x31  
+}  
+   
+以后在需要计数器的场合，可以像使用普通的Win32   API一样，调用两次GetCycleCount函数，比较两个返回值的差，像这样：  
+   
+unsigned   long   t;  
+t   =   (unsigned   long)GetCycleCount();  
+//Do   Something   time-intensive   ...  
+t   -=   (unsigned   long)GetCycleCount();  
+   
+　　《Windows图形编程》第15页编写了一个类，把这个计数器封装起来。有兴趣的读者可以去参考那个类的代码。作者为了更精确的定时，做了一点小小的改进，把执行RDTSC指令的时间，通过连续两次调用GetCycleCount函数计算出来并保存了起来，以后每次计时结束后，都从实际得到的计数中减掉这一小段时间，以得到更准确的计时数字。但我个人觉得这一点点改进意义不大。在我的机器上实测，这条指令大概花掉了几十到100多个周期，在Celeron   800MHz的机器上，这不过是十分之一微秒的时间。对大多数应用来说，这点时间完全可以忽略不计；而对那些确实要精确到纳秒数量级的应用来说，这个补偿也过于粗糙了。  
+   
+这个方法的优点是：  
+   
+1.高精度。可以直接达到纳秒级的计时精度（在1GHz的CPU上每个时钟周期就是一纳秒），这是其他计时方法所难以企及的。  
+   
+2.成本低。timeGetTime   函数需要链接多媒体库winmm.lib，QueryPerformance*   函数根据MSDN的说明，需要硬件的支持（虽然我还没有见过不支持的机器）和KERNEL库的支持，所以二者都只能在Windows平台下使用（关于DOS平台下的高精度计时问题，可以参考《图形程序开发人员指南》，里面有关于控制定时器8253的详细说明）。但RDTSC指令是一条CPU指令，凡是i386平台下Pentium以上的机器均支持，甚至没有平台的限制（我相信i386版本UNIX和Linux下这个方法同样适用，但没有条件试验），而且函数调用的开销是最小的。  
+   
+3.具有和CPU主频直接对应的速率关系。一个计数相当于1/(CPU主频Hz数)秒，这样只要知道了CPU的主频，可以直接计算出时间。这和QueryPerformanceCount不同，后者需要通过QueryPerformanceFrequency获取当前计数器每秒的计数次数才能换算成时间。  
+   
+这个方法的缺点是：  
+   
+1.现有的C/C++编译器多数不直接支持使用RDTSC指令，需要用直接嵌入机器码的方式编程，比较麻烦。  
+   
+2.数据抖动比较厉害。其实对任何计量手段而言，精度和稳定性永远是一对矛盾。如果用低精度的timeGetTime来计时，基本上每次计时的结果都是相同的；而RDTSC指令每次结果都不一样，经常有几百甚至上千的差距。这是这种方法高精度本身固有的矛盾。  
+   
+关于这个方法计时的最大长度，我们可以简单的用下列公式计算：  
+   
+自CPU上电以来的秒数   =   RDTSC读出的周期数   /   CPU主频速率（Hz）  
+   
+64位无符号整数所能表达的最大数字是1.8×10^19，在我的Celeron   800上可以计时大约700年（书中说可以在200MHz的Pentium上计时117年，这个数字不知道是怎么得出来的，与我的计算有出入）。无论如何，我们大可不必关心溢出的问题。  
+   
+下面是几个小例子，简要比较了三种计时方法的用法与精度  
+   
+//Timer1.cpp   使用了RDTSC指令的Timer类//KTimer类的定义可以参见《Windows图形编程》P15  
+//编译行：CL   Timer1.cpp   /link   USER32.lib  
+#include     
+#include   "KTimer.h"  
+main()  
+{  
+    unsigned   t;  
+    KTimer   timer;  
+    timer.Start();  
+    Sleep(1000);  
+    t   =   timer.Stop();  
+    printf("Lasting   Time:   %d\n",t);  
+}  
+   
+//Timer2.cpp   使用了timeGetTime函数  
+//需包含，但由于Windows头文件错综复杂的关系  
+//简单包含比较偷懒：）  
+//编译行：CL   timer2.cpp   /link   winmm.lib    
+#include     
+#include     
+   
+main()  
+{  
+    DWORD   t1,   t2;  
+    t1   =   timeGetTime();  
+    Sleep(1000);  
+    t2   =   timeGetTime();  
+    printf("Begin   Time:   %u\n",   t1);  
+    printf("End   Time:   %u\n",   t2);  
+    printf("Lasting   Time:   %u\n",(t2-t1));  
+}  
+   
+//Timer3.cpp   使用了QueryPerformanceCounter函数  
+//编译行：CL   timer3.cpp   /link   KERNEl32.lib  
+#include     
+#include     
+   
+main()  
+{  
+    LARGE_INTEGER   t1,   t2,   tc;  
+    QueryPerformanceFrequency(&tc);  
+    printf("Frequency:   %u\n",   tc.QuadPart);  
+    QueryPerformanceCounter(&t1);  
+    Sleep(1000);  
+    QueryPerformanceCounter(&t2);  
+    printf("Begin   Time:   %u\n",   t1.QuadPart);  
+    printf("End   Time:   %u\n",   t2.QuadPart);  
+    printf("Lasting   Time:   %u\n",(   t2.QuadPart-   t1.QuadPart));  
+}  
+   
+////////////////////////////////////////////////  
+//以上三个示例程序都是测试1秒钟休眠所耗费的时间  
+file://测/试环境：Celeron   800MHz   /   256M   SDRAM      
+//                     Windows   2000   Professional   SP2  
+//                     Microsoft   Visual   C++   6.0   SP5  
+////////////////////////////////////////////////  
+   
+以下是Timer1的运行结果，使用的是高精度的RDTSC指令  
+Lasting   Time:   804586872  
+   
+以下是Timer2的运行结果，使用的是最粗糙的timeGetTime   API  
+Begin   Time:   20254254  
+End   Time:   20255255  
+Lasting   Time:   1001  
+   
+以下是Timer3的运行结果，使用的是QueryPerformanceCount   API  
+Frequency:   3579545  
+Begin   Time:   3804729124  
+End   Time:   3808298836  
+Lasting   Time:   3569712 

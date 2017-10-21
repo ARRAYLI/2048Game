@@ -1,0 +1,674 @@
+ c语言 conio.h头文件介绍
+标签： 语言c图形structborlandbuffer
+2012-02-13 21:52 10384人阅读 评论(1) 收藏 举报
+ 分类： C/C++（9）  
+C语言图形函数(一)
+C语言图形编程(一,字符屏幕)
+一,屏幕操作函数
+1. clrscr()清除字符窗口函数
+2. window()字符窗口函数
+3. gotoxy()光标定位函数
+4. clreol() 清除光标行尾字符函数
+5. insline() 插入空行函数
+6. delline() 删除一行函数
+7. gettext() 拷进文字函数
+8. puttext() 拷出文字函数
+9. movetext() 移动文字函数
+二,字符属性函数
+10. textmode() 文本模式函数 
+11. highvideo()高亮度函数 
+12. lowvideo() 低亮度函数
+13. normvideo(void);
+14. textcolor() 文本颜色函数
+15. textattr() 文本属性函数
+16.textbackground() 文本背景函数
+三, 屏显状态函数
+17. wherex() 光标处x坐标函数
+18. wherey() 光标处y坐标函数
+19. gettextinfo() 获取文本窗口信息函数
+在Borland C++里面提供了字符屏幕和图形函数.字符屏幕的核心是窗口(Window),它是屏幕的活动部分,字符输出或显示在活动窗口中进行.窗口在缺省时,就是整个屏幕.窗口可以根据需要指定其大小.同样,对图形函数的操作,也提供了(Viewport).也就是说图形函数的操作都是在视口上进行.图形视口与字符窗口具有相同的特性,用户可以在屏幕上定义大小不同的视口,若不定义视口大小,它就是整个屏幕.
+窗口是在字符屏幕下的概念,只有字符才能在窗口中显示出来,这时用户可以访问的最小单位为一个字符.视口是在图形屏幕状态下的概念,文本与图形都可以在视口上显示,用户可访问的最小单位是一个像素(像素这一术语最初用来指显示器上最小的,单独的发光点单元.然而现在,其含义拓宽为指图形显示器上的最小可访问点).
+字符和图形状态下,屏幕上的位置都是由它们的行与列所决定的.有一点须指出:字符状态左上角坐标为(1,1),但图形左上角坐标为(0,0).
+了解字符屏幕和图形函数与窗口和视口的关系是很重要的.例如,字符屏幕 光标位置函数gotoxy()将光标移到窗口的x,y位置上,这未必是相对于整个屏幕.下面介绍常用的几类字符屏幕函数的功能用途,操作方法及其例行程序.
+一,屏幕操作函数
+编写程序绘图经常要用到对字符屏幕进行操作.例如,在往屏幕上写字符之前,首先要将屏幕清除干净.又如,有时需要在屏幕上多处写上肉中刺样的字符内容,这时最好用屏幕拷贝来高效率地完成这一任务.对这些操作,Borland C++提供了一系列字符屏幕操作函数来实现.
+1. clrscr()清除字符窗口函数
+功能:函数clrscr()清除整个当前字符窗口,并且把光标定位于左上角(1,1)处.
+用法:此函数调用方式为 void clrscr(void);
+说明:括号中void 表示无参数.
+该函数相应的头文件为conio.h
+返回值:无
+例:使用这个函数的例子见4.clreol()函数的实例中.
+2. window()字符窗口函数
+功能: 函数window()用于在指定位置建立一个字符窗口.
+用法: 此函数调用方式为 void window(int left,int top,int right,int bottom);
+说明: 函数中参数left,top为窗口左上角坐标;right,bottom为其右下角坐标.
+若有一个坐标是无效的,则window()函数不起作用.一旦该函数调用成功,那么所有定位坐标都是相对于窗口的,而不是相对于整个屏幕.但是建立窗口所用的坐标总是相对整个屏幕的绝对坐标,而不是相对当前窗口的相对坐标.这样用户就可以根据各种需要建立多个互不嵌套的窗口.
+此函数的头文件为conio.h.
+返回值:无
+例: 调用这个函数的实现例见3.gotoxy()函数的例子中.
+3. gotoxy()光标定位函数
+功能: 函数gotoxy()将字屏幕上的光标移到当前窗口指定的位置上.
+用法: 这个函数调用方式为void gotoxy(int x,int y);
+说明: 括号里x,y是, 光标定位的坐标,如果其中一个坐标值无效(如坐标超界),那么光标不会移动.
+此函数在字符状态(有时称为文本状态)下经常用到 ,其相应的头文件为conio.h
+返回值:无
+例: 下面程序建立两个窗口,然后在窗口里显示字符,字符的位置是调用该函数确定的.
+#include"conio.h>
+void border(int startx,int starty,int endx,int endy)
+{
+register int i;
+gotoxy(1,1);
+for(i=0;i<=endx-startx;i++)
+putch('-');
+gotoxy(1,endy-starty);
+for(i=0;i<=endx-startx;i++)
+putch('-');
+for(i=2;i
+void main()
+{
+register int i;
+gotoxy(6,8);
+printf("This is a test of the clreol() function.");
+getch();
+gotoxy(6,8);
+clreol();
+for(i=0;i<20;i++)
+printf("Hello\n");
+getch();
+clrscr();
+}
+5. insline() 插入空行函数
+功能: 函数insline()插入一空行到当前光标所在行上,同时光标以下的所有行都向下顺移一行.
+用法: 此函数的调用方式为void insline(void);
+说明: 该函数只用于文本方式,并且在当了符窗口才有效.
+这个函数的对应头文件是 conio.h
+返回值:无
+例: 程序给出了insline()函数的用法.
+#include "conio.h"
+void main()
+{
+registser int i;
+clrscr();
+for(i=1;i<24;i++)
+{
+gotoxy(1,i);
+printf("This is line %d\n",i);
+}
+getch();
+gotoxy(1,10);
+insline();
+getch();
+}
+6. delline() 删除一行函数
+功能: 函数delline()删除当前窗口内光标所在行,同时把该行下面 所有行都上移一行.
+用法: 此函数调用方式为 void delline(void);
+说明: 注意,如果当前窗口小于整个屏幕,那么该函数只影响到窗口内的字符.
+这个函数相应的头部文件是conio.h
+返回值: 无
+例:先在屏幕上显示16行文字,然后删除第4行
+#include "conio.h"
+void main()
+{
+register int i;
+clrscr();
+for(i=0;i<16;i++) printf("line %d\n",i);
+getch();
+gotoxy(1,4);
+delline();
+getch();
+}
+7.gettext() 拷进文字函数
+功能: 函数gettext()用于文本状态下将屏幕上矩形域内的文字拷进内存.
+用法: 该函数调用方式为 int gettext(int left,int top,int right,int bottom,void *buffer);
+说明: 函数中参数left,top为矩形区域的左上角坐标,right,bottom为其右下角坐标,这些坐标是屏幕的绝对坐标,不是窗口的相对坐标.buffer指针必须指向一个足够保存该矩形域内文字的内存.所用内存大小按下式计算:
+点头用字节数=矩形哉内的行数×矩形域的列数×2
+这里将行数乘以列数再乘以2的原因是保存屏幕上每个字符要用两个字节存储单元,一个字节存储单元存放字符本身,而另一个存放其属性.
+此函数相应的头文件是 conio.h
+返回值: 若函数调用成功则返回1,否则返顺0.
+例: 把屏幕左上角点(1,1)和右下角点(10,10)的区域拷贝到buf指向的内存中去.
+buf=(char *)malloc(10*10*2);
+if(!buf)gettext(1,1,10,10,buf);
+8. puttext() 拷出文字函数
+功能: 函数puttext()把先前由gettext()保存到buffer指向的内存中的文字拷出到屏幕上一个矩形区域中.
+用法: 此函数调用方式为 int puttext(int left,int top,int right,int bottom,void *buffer);
+说明: 函数里left,top为给出的屏幕上矩形区域的左上角点,right,bottom为其右下角点,其坐标是用屏幕的绝对坐标,而不是用窗口的相对坐标.
+该函数相应的头文件为conio.h
+返回值: 函数调用成功返回值为1,否则返回0.
+例: 屏幕上某个区域内容拷进buf指向的内存中,然后又将这些文字拷出到屏幕上新位置.
+buf=(char *)malloc(10*10*2);
+gettext(1,1,10,10,buf);
+puttext(16,16,30,30,buf);
+9. movetext() 移动文字函数
+功能: 函数movetext()将屏幕上一个矩形区域的文字移到另一个区域上.
+用法: 该函数调用方式为 int movetext(int left,int top,int right,int bottom,int newleft,int newtop);
+说明: 上面left,top为矩形区域上角坐标,right,bottom为其右下角坐标,newleft,newright为移动到区域左上角坐标.这些坐标是屏幕的绝对坐标,不是窗口的相对坐标.
+若要把屏幕上一段文字移到屏幕的另一位置,那么使用movetext()函数比用gettext()然后再用puttext()效率更高.
+此函数相应的头文件是conio.h
+返回值: 如果有一个以上坐标无效,那么函数返回值为0,否则返回1.
+列: 把屏幕左上角点(8,8),右下角点(20,20)的矩形区域文字移动到左上角点(10,10)的位置上:
+movetext(8,8,20,20,10,10);
+10. textmode() 文本模式函数
+功能: 函数textmode()针屏幕设置为文本模式(或者说字符状态).
+用法: 函数调用方式为 void textmode(int mode);
+说明: 参数mode必须为表1-2中所示的模式之一⑴以用模式名(符号值),也可以用其等价的整数值.
+表1-2 文本模式
+----------------------------------------------------------------
+模式名(符号值) 等价整数值 说 明
+BW40 0 40列黑白
+C 40 1 40列彩色
+BW80 2 80列黑白
+C 80 3 80列彩色
+MONO 7 80列单色
+LASTMODE -1 上次模式
+----------------------------------------------------------------
+调用该函数后,屏幕复位,并且所有字符的属性恢复其缺省值.
+此函数对应的头文件是conio.h
+返回值: 无
+例: 把屏幕设置为80列彩色模式
+textmode(C80);
+二,字符属性函数
+用户可以设置字符显示的高亮度或低亮度的写的符闪烁及其背景颜色等.具有这些操作的函数称为字符属性函数.除了仅支持单模式和单色的显示卡外,字符属性函数适用于其余所有的显示卡.
+11. highvideo()高亮度函数
+功能: 函数highvideo()设置屏幕为高亮度显示.
+用法: 此函数调用方式为void highvideo(void);
+说明: 调用该函数后,写到屏幕上的字符是高亮度的.此函数只适用于文本模式状态(或说字符屏幕状态).
+这个函数对应的头文件为 conio.h
+返回值: 无
+例: 设置屏幕显示为高亮度的.
+highvideo();
+12. lowvideo() 低亮度函数
+功能: 函数lowvideo()设置屏幕为低亮度显示.
+用法: 该函数调用方式为void lowvideo(void);
+说明: 调用该函数后,此时写到屏幕上的字符是低亮度的.这个函数只适用于文本模式状态(或说字符屏幕状态).
+此函数相应的头文件是 conio.h
+返回值: 无
+例: 设置屏幕显示为低亮度的
+lowvideo();
+13. normvideo(void);
+功能: 函数normvideo()设置屏幕为正常亮度显示.
+用法: 这个函数调用方式为void normvideo(void);
+说明: 调用该函数后,此时写到屏幕上的字符是正常亮度的,该函数只适用于文本模式状态(或说字符状屏幕状态).
+此函数相应的头文件为conio.h
+返回值: 无
+例: 设置屏幕显示为正常亮度.
+normvideo();
+14. textcolor() 文本颜色函数
+功能: 函数textcolor()设置字符屏幕下文本颜色(或字符颜色),它也可以用于使字符闪烁.
+用法: 这个函数调用方式为void textcolor(int color);
+说明: 函数中参数color的有效值可取表1-3中的颜色名(即宏名)或等价值.
+表1-3 颜色名与等价值
+---------------------------------------------------
+名 等价值 含 义
+BLACK 0 黑
+BLUE 1 蓝
+GREEN 2 绿
+CYAN 3 青
+RED 4 红
+MAGENTA 5 洋红
+BROWN 6 棕
+LIGHTGRAY 7 淡灰
+DRAKGRAY 8 深灰
+LIGHTBLUE 9 淡蓝
+LIGHTGREEN 10 淡绿
+LIGHTCYAN 11 淡青
+LIGHTRED 12 淡红
+LIGHTMAGENTA 13 淡洋红
+YELLOW 14 黄
+WHITE 15 白
+BLINK 128 闪烁
+------------------------------------------------------------
+textcolor()函数执行后,只影响其后输出探险符颜色,而不改变已经在当前屏幕上的其它字符颜色.显然,如果需要输出的字符闪烁,只要将函数中参数color取为BLINK即可,如果要使字符带颜色闪烁,就必须将所选的颜色值与128作"或"运算.
+此函数相应的头文件是 conio.h
+返回值: 无
+例: 下面程序段中第一条语句使输出的字符闪烁,第三条语句使字符输出为经色同时闪烁:
+textcolor(BLINK);
+printf("hello");
+textcolor(RED|BLINK);
+15. textattr() 文本属性函数
+功能: 函数textattr()用于设置文本属性,即字符背景颜色,字符本身颜色和字符闪烁与否.
+用法: 函数调用方式为void textattr(int attribute);
+说明: 设置字符背景颜色属性字节的最简单方法是,用所选的背景颜色值乘以16再与字符颜色值作按位或(OR)运算.例如需要红色背景,绿色字符,就设置成RED*16|GREEN,若还要字符闪烁,就把背景颜色值,字符颜色值与闪烁值一起
+按位作或运算.如蓝背景,黄字符且闪烁,就设置成为:
+YELLO|128|BLUE*16
+第0位用于设置字符颜色.
+此函数相应的头文件为conio.h
+返回值: 无
+例: 设置背景为蓝色,字符为红色并且字符闪烁:
+textattr(RED|128|BLUE*16);
+16.textbackground() 文本背景函数
+功能: 函数textbackground()设置字符屏幕下文本背景颜色(或字符背景颜色).
+用法: 此函数调用方式为void textbackground(int bcolor);
+说明: 参数bcolor 的有效值取表1-4背景颜色(即宏名)或等价值.
+表1-4 背景颜色与等价值
+-------------------------------------------------
+背景颜色 等价值 含 义
+-------------------------------------------------
+BLACK 0 黑
+BLUE 1 蓝
+GREEN 2 绿
+CYAN 3 青
+RED 4 红
+MAGENTA 5 洋红
+BROWN 6 棕
+-------------------------------------------------
+调用该函数只影响后续写的字符背景颜色,而不改变当前显示在屏幕上的字符背景颜色.
+这个函数对应的头文件是conio.h
+返回值: 无
+例: 设置文本背景颜色为蓝色:
+textbackground(BLUE));
+三, 屏显状态函数
+这里提供三个在文本模式下屏幕显示状态的函数
+17. wherex() 光标处x坐标函数
+功能: 函数wherex()返回当前窗口中光标处横向坐标.
+用法: 此函数调用方式为int wherex(void);
+说明: 这个函数调用无参数,其对应的头文件是conio.h
+返回值: 函数调用成功,返回光标处x坐标值.
+例: 调用这个函数的实例见18.wherey()函数的例中.
+18. wherey() 光标处y坐标函数
+功能: 函数wherey()返回当前窗口中光标处纵向坐标.
+用法: 该函数调用方式为int wherey(void);
+说明: 此函数调用无参数,其相应的头文件是conio.h
+返回值: 函数调用成功,返回光标处y坐标值.
+例: 调作函数wherex()与wherey(),返回当前光标处x坐标与y坐标,并赋给整型变量xpos ,ypos.
+int xpos,ypos;
+xpos=wherex();
+ypos=wherey();
+19. gettextinfo() 获取文本窗口信息函数
+功能: 函数gettextinfo()获取当前文本窗口信息,并存放在实参结构中.
+用法: 函数调用方式为void gettextinfo(struct text-info *info);
+说明: 函数中参数info 为struct text-info结构型指针,struct text-info结构在此函数相应的头文件中定义为:
+struct text-info{
+unsigned char winleft; // 窗口左上角x坐标
+unsigned char wintop; // 窗口左上角y坐标
+unsigned char winright; // 窗口右下角x坐标
+unsigned char winbottom; // 窗口右下角y坐标
+unsigned char attribute; // 文本属性
+unsigned char normattr; // 正常属性
+unsigned char currmode; // 当前屏显模式
+unsigned char screenhight // 文本窗口高度(以行数计)
+unsigned char screenwidth; // 文本窗口宽度(以字符个数计)
+unsigned char curx; // 光标处x坐标
+unsigned char cury; // 光标处y坐标
+};
+记住,调用函数gettextinfo()时,要传递struct text-info结构型指针或该结构的首地址,不要传递结构变量本身.
+这个函数对应的头文件是conio.h
+返回值: 返回文本窗口角点坐标,高宽度,文本属性等值,并存放在info所指向的结构变量中.
+例: 程序语句说明如何正确调用gettextinfo()函数:
+struct text-info win-status;
+gettextinfo(&win-status);
+C语言图形编程(二,图形显示)
+一,确定显示卡
+二,选择显示模式 
+三,图形显示
+20. detectgraph() 显示卡检测函数
+21. initgraph() 图形初始化函数
+22. getdrivername() 获取图形驱动程序名的指针
+23. getgraphmode() 获取图形模式函数
+24. getmoderange()获取模式值范围函数
+25. getmaxmode()获取最大显示模式函数
+26. getmodename()获取显示模式名函数
+27. graphdefaults()图形设置复位缺省值函数
+28. setgraphmode() 设置图形模式函数
+29. restorecrtmode() 恢复文本显示模式函数
+30. graphresult() 图形操作结果函数
+31. grpaherrormsg() 图形错误信息函数
+32. setgraphbufsize()设置图形缓冲区大小函数
+33. setactivepage() 设置可输出显示页函数
+34. setvisualpage() 设置可见显示页数
+35. closegraph()关闭图形模式函数
+
+一,确定显示卡
+微机系统显示部分由显示器(monitor)和显示卡(adapter)两部分组成.显示器是独立于主机的一种外部设备,显示卡或称显示适配卡,也有的称图形卡,是插在主机上的一块电路板.但也有的显示卡与主机板设计在一起.显示卡包括寄存器组,存储器和控制电路三大部分.其中存储器又包括显示RAM和ROM BIOS两部分,微机对显示屏幕的所有操作都是通过显示卡来实现的.因此要进行图形显示 ,首先要确定计算机上安装的是何种显示卡.一种方法是询问计算机或终端使用者,确定将要使用的显示卡类型.这种方法很难,因为甚至专业程序员也不总是能确定他正在使用什么样的硬件.另一种方法是用软件查询硬件以识别当前的配置.如果有一些识别硬件的标准,这就很简单了.在Borland C中对现在所使用的各种显示卡提供了支持,这只要调用detectgraph()函数就可以了,该函数为程序员确定计算机上使用的显示卡类型.
+二,选择显示模式
+显示模式是指显示卡支持的分辨率与相应的颜色配置.每台计算机都配置了某种类型显示卡,可以为该显示卡指定显示模式.
+三,图形显示
+进行图形显示首先要确定显示卡,然后选择其显示模式.这些工作都可以调用图形功能函数来完成,其实就是把适合于显示卡的图形驱动程序装入内存.如果图形驱动程序未装入内存,那么图形函数就不能操作.
+20. detectgraph() 显示卡检测函数
+功能: 函数detectgraph()在计算机上安装有显示卡的情况下,测定其显示卡的类型.
+用法: 此函数调用方式为void detectgraph(int *driver,int *mode);
+说明: 函数把driver所指向的整型变量设置为图形驱动程序的代码,把mode所指向的整型变量设置为显示卡支持的最高有效模式(即该显示卡能支持的最高分辨率).
+该函数相应的头文件为graphics.h
+返回值: 返回适合于该显示卡的图形驱动程序的代码(也称等价值),并存放在driver指向的变量中.若计算机系统中无图形硬件,则由driver指向的变量设置为-2.
+例: 检测计算机是否装有显示卡:
+int driver,mode;
+detectgraph(&driver,&mode);
+if(driver==-2)
+{
+printf("no graphics adapter in the computer");
+exit(1);
+}
+21. initgraph() 图形初始化函数
+功能: 函数initgraph()用于初始化图形系统,把适合的图形驱动程序装入内存,设置图形函数所用的显示模式.
+用法: 该函数调用方式为void initgraph(int *driver,int *mode,char *path);
+说明: 1) 函数中参数driver指向图形驱动程序(或者等价值).
+在头部文件graphics.h中定义了图形驱动程序的宏名与其等价 ,如下:
+宏 名 等价值
+------------------------------
+DETECT 0
+CGA 1
+MCGA 2
+EGA 3
+EGA64 4
+EGAMONO 5
+IBM8514 6
+HERCMONO 7
+ATT400 8
+VGA 9
+PC3270 10
+--------------------------------
+注:在现在的计算机中,上表中的许多显示卡已经过时,不再使用.
+这样就不必担心图形驱动程序的准确名字,而只要用其等价值即可,若使用detect(即等价值0)时,initgraph()函数自动检测当前计算机中装有的显示卡类型,并且选用最大分辨率的显示模式.
+2)参数mode指向显示模式或用等价值(风表1-5),mode所指的值必须是有效模式之一.
+3)参数path指向图形驱动程序所在的路径,例如path="C:\TC\BG1".若没有指定路径,就在当前目录下寻找.
+一般图形驱动程序包含在.BGI文件中,这些文件是系统可以得到的.这个函数对应的头文件是graphics.h.
+返回值: 无
+例: 调用initgraph()自动检测硬件图形系统,并选用最大分辨率显示模式.
+init drver,mode;
+driver=DETECT;
+mode=0;
+initgraph(&driver,&mode,"");
+22. getdrivername() 获取图形驱动程序名的指针
+功能: 函数getdrivername()返回指向当前图形驱动程序名的指针.
+用法: 此函数调用方式为char *getdrivername(void);
+说明: 本函数可以用来检测显示卡,但只能在initgraph()设置图形驱动程序和显示模式之后调用.
+该函数相应的头文件为graphics.h
+返回值: 返回一指针,指向含有当前图形驱动程序名的字符串.
+例: 显示当前图形驱动程序名:
+#include
+#include
+void main()
+{
+int graphdriver=DETECT,graphmode;
+char *s;
+initgraph(&graphdriver,&graphmode,"");
+s=getdrivername();
+outtext("Using driver:");
+outtext(s);
+getch();
+closegraph();
+}
+23. getgraphmode() 获取图形模式函数
+功能: 函数getgrapgmode()返回当前图形模式.
+用法: 该函数调用方式为int getgraphmode(void);
+说明: getgraphmode()函数无参数调用.
+这个函数对应的头文件是graphics.h
+返回值: 返回initgraph()或setgraphmode()所设置的当前图形模式值.
+例: 显示当前图形模式的代码:
+printf("graphics mode is %d",getgraphmode());
+24. getmoderange()获取模式值范围函数
+功能: 函数getmoderange()返回指定的图形驱动程序能够支持的最低和最高模式值.
+用法: 函数调用方式为 void getmoderange(int driver,int *lowmode,int himode);
+说明: 参数driver是用来调用此函数时,指定图形驱动程序等价值或宏名.
+其有效值如下:
+-------------------------------------
+宏 名 等价值
+-------------------------------------
+DETECT0
+CGA1
+MCGA2
+EGA3
+EGA644
+EGAMONO5
+IBM85146
+HERCMONO7
+ATT4008
+VGA9
+PC327010
+-------------------------------------
+注:上表中的许多显示卡在现在的计算机上已经过时,仅作参考.
+该函数想应的头文件为graphics.h
+返回值: 返回的最小和最大有效值存放在参数指针lowmode和himode分别指向的整型变量中.
+例: 显示当前图形硬件的显示模式的范围值:
+#include"graphics.h"
+void main()
+{
+int driver,mode;
+int low,high;
+mode=0;
+initgraph(&driver,&mode,"");
+getmoderange(driver,&low,&high);
+printf("mode range:%d--%d,low,high);
+getch();
+rstorecrtmode();
+}
+25. getmaxmode()获取最大显示模式函数
+功能: 函数getmaxmode()返回当前加载的图形驱动程序所支持的最大有效显示模式.
+用法: 函数调用方式为int getmaxmode(void);
+说明:本函数无参数调用,返回图形驱动程序所支持的最大显示模式,所有图形驱动程序支持从0到getmaxmode()函数返回值中的任一整 数值(对应的显示模式).
+这个函数对应的头文件是graphics.h
+返回值:返回图形驱动程序所支持的显示模式最大值.
+例: 显示当前最大显示模式:
+printf("The maxmode of this driver is %d\n",getmaxmode());
+26. getmodename()获取显示模式名函数
+功能: 函数getmodename()可获取当前图形驱动程序支持的指定显示模式的名字.
+用法: 此函数调用方式为char *getmodename(int modecode);
+说明: 参数modecode为整型值.用以指定一显示模式值调用该函数.
+这个函数对应的头文件graphics.h
+返回值: 返回指定模式值的显示模式名.
+例: 显示当前最大显示模式名:
+#include
+#include
+void main()
+{
+int graphdriver=DETECT,graphmode;
+int modecode;
+char *s;
+initgraph(&graphdriver,&graphmode,"");
+modecode=getmaxmode();
+s=getmodename(modecode);
+outtext("The maxmode name is:");
+outtext(s);
+getch();
+closegraph();
+}
+27. graphdefaults()图形设置复位缺省值函数
+功能: 函数grpahdefaults()把所有图形设置复位为它们的缺省值,这包括把图形视口复位为全屏幕;当前位置定位在0,0;调色板,背景色和绘图色都被复位;填充颜色,填 充图样,文本文字和排齐方式都返回到它位的缺省值.
+用法: 此函数调用方式为void graphdefaults(void);
+说明: 该函数无参数调用.
+这个函数相应的头文件为graphics.h
+返回值: 无
+例: 将图形系统恢复为其缺省值:
+graphdefaults();
+28. setgraphmode() 设置图形模式函数
+功能: 函数setgraphmode()用当前图形驱动程序有效的图形模式调用,一旦被调用,setgraphmode()选择一个新的图形模式.注意,图形显示模式必须事先由initgraph()初始化.
+用法: 该函数调用方式为void setgraphmode(int mode);
+说明: 参数mode调用时为指定的模式值.
+此函数相应的头部文件是graphics.h
+返回值: 无
+例: 把VGA图形卡设置为VGAMED模式:
+setgraphmode(VGAMED); // 图形系统已经初始化
+29. restorecrtmode() 恢复文本显示模式函数
+功能: 函数restrecrtmode()将显示模式恢复到调用initgraph()时检测出的初始文本模式.
+用法: 这个函数调用方式为void restorecrtmode(void);
+说明: 函数restorecrtmode()和setgraphmode()函数一起使用,可以实现文本与图形显示之间的切换.
+此函数对应的头文件为graphics.h
+返回值: 无
+例: 恢复显示模式为初始文本模式:
+restorecrtmode();
+30. graphresult() 图形操作结果函数
+功能: 函数graphresult()函数返回最后一次图形操作的代码.
+用法: 此函数调用方式为int graphresult(void);
+说明: C为图形设置了代码,它们是从-15到0的整数值.其含义见表1-6.
+调用该函数时,出错状态被复位为0,所以返回值(代码)最好存于变量中,以供需要时检测,
+进行下一步图形操作.
+
+图形操作信息名称 代码 含 义 
+grOK
+grNoInitGraph
+grNoDetected
+grFileNoFound
+grInvalidDriver
+grNoLoadMem
+grNoScanMem
+grNoFloadMem
+grFontNotFound
+grNoFontMem
+grInvalidMode
+grError
+grIOerror
+grInvalidFont
+grInvalidDeviceNum 0
+-1
+-2
+-3
+-4
+-5
+-6
+-7
+-8
+-9
+-10
+-11
+-12
+-13
+-14
+-15
+成功
+没有图形初始化
+没有检测到图形硬件
+没有找到图形驱动文件
+无效图形驱动程序
+没有足够内存装入图形驱动程序
+Scan填 充内存不足
+Flood填 充内存不足
+没有找到字体文件
+没有足够内存用于装字体文件
+无效图形模式
+一般图形错误
+输入输出错误
+无效字体文件
+无效字体号
+无效设备号
+这个函数对应的头部文件是graphics.h
+返回值: 返回最后一次图形操作结果相应的代码.
+例: 调用graphresult()函数的实例见下面grapherrormsg()函数的例子.
+31. grpaherrormsg() 图形错误信息函数
+功能: 函数grapherrormsg()返回指向出错代码相应的错误信息字符串的指针.
+用法: 此函数调用方式为char *grapherrormsg(int errcode);
+说明: 参数errcode值,即出错代码由调用函数graphresult()获得.这里所有出错代码及相应的错误信息如表1-6中所述.
+该函数相应的头文件是grpahics.h
+返回值: 返回一个指向该出错代码相应的错误信息字符串的指针.
+例: 用文字形式显示有关出错代码相应的错误信息:
+int errorcode;
+errorcode=graphresult();
+printf(%s",grapherrormsg(errcode));
+32. setgraphbufsize()设置图形缓冲区大小函数
+功能: 函数setgraphbufsize()用来设置有的图形函数(如floodfill等)所要用到的内存缓冲区大小.
+用法: 函数调用方式为unsigned setgraphbufsize(unsigned bufsize);
+说明: 这里无符号参数bufsize为所设置的缓冲区大小.
+一般不需要用到该函数,仅使用由initgraph()函数产生的内存缓冲区就够了,缓冲区大小缺省时为4KB(即4096个字节),足以用来填 充一个大约有650个顶点的多边形,但是为了节省内存,用户可以减少缓冲区的大小,或者由于需要更多的缓冲区内存,这时可用函数setgraphbufsize()来增加缓冲区大小.注意,使用setgraphbufsize()函数必须在调用initgraph()之前.
+返回值: 返回先前定义的图形缓冲区字节数.
+例: 调用此函数设置图形缓冲区为8KB字节:
+setgraphbufsize(0x2000);
+33. setactivepage() 设置可输出显示页函数
+功能: 函数setactiveage()设置用作图形输出的显示页.
+用法: 这个函数调用方式为void setactivepage(int pagenum);
+说明: 参数pagenum为选择的显示页号,如果调用成功,那么后续图形输出就写到选定的输出页上.缺省时是以0页作为当前输出页.该函数只在图形驱动程序及其显示模式支持多个显示页时才起作用.
+此函数相应的头文件为graphics.h
+返回值: 无
+例: 设置1页为输出显示页:
+setactivepage(1);
+34. setvisualpage() 设置可见显示页数
+功能: 函数setvisualpage()设置屏幕上可见的显示页.
+用法: 函数调用方式为void setvisualpage(int pagenum);
+说明: 参数pagenum为设置的显示页号.缺省时是以0页作为当前可见页.调用这个函数和调用setactivepage()一样,仅在图形驱动程序及其显示模式支持多个显示页时才有效.用户可以用系统所支持的任何显示页,在它们之间切换,当然一次只能有一个显示页在屏幕上可见,有时需要在一页上建立后备图形葨图像,它在当时不显示,一旦需要时,可以马上切换到该页,如要实现动画效果,只需切换显示页号即可.用setvisualpage()函数选 定实际显示在屏幕上的可见页,用setactivepage()函数选择当前图形输出页,从而实现图形页之间的显示切换,通常这两个函数都是缺省的,这时输出页就是可见页.若不绘制动画就不需要用到这两个函数.
+这两个函数对应的头文件是graphics.h
+返回值: 无
+例: 设置可见页为第1页:
+setvisualpage(1);
+35. closegraph()关闭图形模式函数
+功能: 函数closegraph()将系统图形模式关闭,,复位到initgraph()初始文本模式,并且释放图形驱动程序,字体和内部缓冲区所占用的系统内存.
+用法: 这个函数调用方式为void closegraph(void);
+说明: 当用户的程序既用到图形输出又用到非图形输出时,应该调用此函数.特别是程序多次调用initgraph()函数的情况,要相应地调用closegraph函数,释放调用initgraph()所占用的内存,否则内存很快就满了,程序无法运行,如果程序结束,也可以用restorecrtmode()函数代替该函数,这样任何分配的内存都将释放.
+此函数对应的头文件是graphics.h
+返回值: 无
+例: 关闭图形系统:
+closegraph();
+C语言图形编程(三,绘图函数-01)
+一,屏幕和视口设置与清除函数
+36. setviewport() 设置图形视口函数
+37. clearviewport()清除图形视口函数
+38. cleardevice() 清除屏幕函数
+39. getviewsettings() 获取图形视口设置函数
+二,调色板和颜色函数
+40. setpalette()设置调色板函数
+41. setallpalette()设置整个调色板函
+42. setbackcolor() 设置背景颜色函数
+43. setcolor() 设置颜色函数
+44. getbkcolor() 返回背景色函数
+45. getcolor() 返回当前绘图颜色
+46. getmaxcolor()返回最大颜色值函数
+47. getpalette() 获取调色板函数
+48. getpalettesize() 返回调色板大小函数
+49. getdefaultpalette() 获取缺省调色板函数
+三,屏幕位置函数
+50. getmaxx()返回最大x坐标函数
+51. getmaxy() 返回最大y坐标函数
+52. getx() 返回x坐标函数
+53. gety() 返回y坐标函数
+54. moveto()函数
+55. moverel() 相对移动函数
+----------------------------------------------------
+Borland C++提供了一整套综合性的图形函数,上节介绍了其中有关图形显示的函数,本节介绍其中的绘图函数,下节将介绍它的图形文本函数.
+一般绘图时,首先要清除屏幕,设置图形视口,设置绘图颜色,然后在屏幕上某个位置画点或直线或曲线等.下面给出具有这些功能的函数.
+一,屏幕和视口设置与清除函数
+36. setviewport() 设置图形视口函数
+功能: 函数setviewport() 设置当前图形视口.
+用法: 函数调用方式为void setviewport(int left,int top,int right,int bottom,int clip);
+说明: 参数left,top是左上角坐标,right,bottom是右下角坐标,它们都是绝对屏幕坐标.
+传给setviewport()的第五个参数是clip,如果clip为1,则超出视口的输出图形自动被裁剪掉,即所有作图限制于当前图形视口之内,如果clip为0,则不做裁剪,即作图将无限制地扩展于视口周界之外,直到屏幕边界.若无效参数传入setviewport(),则graphresult()函数返回值-11,先前视口设置仍有效.
+setviewport()函数的对应头文件为 graphics.h
+返回值: 无
+例: 建立对角为(6,6)和(88,88)的视口,并带有裁剪功能:
+setviewport(6,6,88,88,1);
+37. clearviewport()清除图形视口函数
+功能: 函数clearviewport()清除当前图形视口,并把光标从当前位置移到原点(0,0).
+用法: 该函数调用方式为void clearviewport(void);
+说明: 此函数调用执行后,当前图形视口将不复存在.
+这个函数对应的头文件是graphics.h
+返回值: 无
+例: 清除当前图形视口,但并非整个屏幕:
+clearviewport();
+38. cleardevice() 清除屏幕函数
+功能: 函数cleardevice() 清除整个屏幕,并且将当前位置移到屏幕原点.
+用法: 此函数调用方式为void cleardevice(void);
+说明: 该函数类似于文本模式下的函数clrscr(),但clrscr()函数不能在图形方式下工作;同样cleardevice()函数不能在文本模式下工作.
+这个函数相应的头文件为graphics.h
+返回值: 无
+例: 清除当前整个屏幕:
+cleardevice();
+39. getviewsettings() 获取图形视口设置函数
+功能: 函数getviewsettings()返回当前图形视口坐标和裁剪标志,坐标是绝对屏幕坐标,裁剪标志 1或 0.
+用法: 此函数调用方式为void getviewsettings(struct viewporttype *info);
+说明: 该函数执行后,把有关当前视口的信息装入info指向的viewporttype型结构中.
+viewporttype结构定义如下:
+struct viewporttype {
+int left,top,right,bottom;
+int clipflag;
+}
+这里left,top中存放视口左上角坐标,right,bottom中存放视口右下角坐标,clipflag中存放裁剪标志,若clipflag为1 ,执行裁剪以防止超出视口边界,如果clipflag为0,则不对超出边界输出作裁剪.
+getviewsettings()函数对应的头文件是graphics.h
+返回值: 无
+例: 显示当前视口角点坐标:
+struct viewporttype info;
+getviewsettings(&info);
+printf("left:%d top:%d\n",info.left,info.top);
+printf("right:%d bottom:%d\n",info.right,info.bottom);
+二,调色板和颜色函数
+进行图形显示或绘图,除了要知道用什么显示卡以及相应的图形驱动程序外,还必须了解它们支持什么样的调色板颜色.
+40. setpalette()设置调色板函数
+功能: 函数setpalette()可对调色板上的颜色的色彩值重新设定.
+用法: setpalette()函数调用方式为void setpalette(int value,int color);
+说明: 参数value为色彩值,color为色彩值相应的颜色名.当需要将一颜色指定为一色彩值地,即可调用此函数来设置.
+表1-7 预先定义的调色板与色彩
+-----------------------------------------------------------------
+调色板 色彩0 色彩1 色彩2 色彩3
+-----------------------------------------------------------------
+C0 黑色 淡绿 红浅 黄色
+C1 黑色 淡青 粉红 白色
+C2 黑色 绿色 红色 棕色
+C3 黑色 青色 品粉红 淡灰色
+-----------------------------------------------------------------
+这个函数相对应的头文件为graphics.h
+返回值: 无
